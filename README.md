@@ -6,17 +6,17 @@ A modern, responsive web application for a luxury fine-dining restaurant built w
 
 ## 🌟 Key Features
 
-- ** Table Reservation Modal (`BookTable.jsx`)**: 
+-  Table Reservation Modal (`BookTable.jsx`) : 
   - Real-time time-slot dropdown with 12-hour formatting ($5:00\text{ PM} - 10:00\text{ PM}$).
   - Keyboard accessible (`Escape` key detection) with animated backdrop overlay.
   - Interactive submission feedback state.
 
-- ** Interactive Shopping Cart Drawer (`Cart.jsx`)**:
+-  Interactive Shopping Cart Drawer (`Cart.jsx`) :
   - Slide-over drawer navigation for mobile and desktop screens.
   - Item quantity increment/decrement controls with dynamic tax ($8\%$) and subtotal recalculations.
   - Empty cart fallback state.
 
-- ** Responsive Navigation (`NavBar.jsx`)**:
+-  Responsive Navigation (`NavBar.jsx`) :
   - Animated item badge counter reflecting total items in the cart.
   - Quick action buttons for reservation and order viewing.
 
