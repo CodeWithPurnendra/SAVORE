@@ -1,4 +1,4 @@
-# 🍽️ Savory - Fine Dining & Culinary Experience
+# 🍽️ Savory - Fine Dining & Culinary Experience.
 
 A modern, responsive web application for a luxury fine-dining restaurant built with **React**, **Tailwind CSS**, and **Lucide/Feather Icons**. Features real-time state management for item orders, interactive booking modals, and a slide-over shopping cart drawer.
 
