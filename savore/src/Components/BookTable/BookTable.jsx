@@ -9,11 +9,12 @@ export default function BookTable({ isOpen, onClose }) {
         guests: '2',
         date: '',
         time: '7:00 PM',
-        specialRequest: '',
+        specialRequests: '',
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
     // 12-hour formatted time options
     const timeOptions = [
@@ -45,19 +46,38 @@ export default function BookTable({ isOpen, onClose }) {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setErrorMessage('');
 
-        // Simulated API call (Replace with Express endpoint POST /api/reservations)
-        setTimeout(() => {
+        try {
+            const response = await fetch('http://localhost:5000/api/bookings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...formData,
+                    guests: parseInt(formData.guests, 10), // Ensure guests is sent as a number
+                }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                setIsSubmitting(false);
+                setIsSuccess(true);
+                setTimeout(() => {
+                    setIsSuccess(false);
+                    onClose();
+                }, 2500);
+            } else {
+                setIsSubmitting(false);
+                setErrorMessage(result.error || 'Something went wrong. Please try again.');
+            }
+        } catch (error) {
             setIsSubmitting(false);
-            setIsSuccess(true);
-            setTimeout(() => {
-                setIsSuccess(false);
-                onClose();
-            }, 2500);
-        }, 1200);
+            setErrorMessage('Failed to connect to the server.');
+        }
     };
 
     return (
@@ -98,6 +118,13 @@ export default function BookTable({ isOpen, onClose }) {
                                 Book Your Table
                             </h3>
                         </div>
+
+                        {/* Error Message Display */}
+                        {errorMessage && (
+                            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl">
+                                {errorMessage}
+                            </div>
+                        )}
 
                         {/* Form */}
                         <form onSubmit={handleSubmit} className="space-y-4">
@@ -210,9 +237,9 @@ export default function BookTable({ isOpen, onClose }) {
                             <div className="space-y-1">
                                 <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-semibold">Special Requests (Optional)</label>
                                 <textarea
-                                    name="specialRequest"
+                                    name="specialRequests"
                                     rows="2"
-                                    value={formData.specialRequest}
+                                    value={formData.specialRequests}
                                     onChange={handleChange}
                                     placeholder="Seating preferences, dietary notes..."
                                     className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500/60 resize-none"

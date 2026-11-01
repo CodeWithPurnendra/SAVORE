@@ -1,14 +1,14 @@
 import React, { useState, useRef, useLayoutEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { 
-  FiMail, 
-  FiPhone, 
-  FiMapPin, 
-  FiSend, 
-  FiCheckCircle, 
-  FiClock, 
-  FiSun 
+import {
+  FiMail,
+  FiPhone,
+  FiMapPin,
+  FiSend,
+  FiCheckCircle,
+  FiClock,
+  FiSun
 } from 'react-icons/fi';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -26,6 +26,7 @@ export default function Contact() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Entrance Animations
   useLayoutEffect(() => {
@@ -54,27 +55,43 @@ export default function Contact() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage('');
 
-    // Simulated API submission delay (Replace this with your Express POST request later!)
-    setTimeout(() => {
+    try {
+      const response = await fetch('http://localhost:5000/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setIsSubmitting(false);
+        setIsSubmitted(true);
+        setFormData({ name: '', email: '', subject: 'General Inquiry', message: '' });
+        setTimeout(() => setIsSubmitted(false), 5000);
+      } else {
+        setIsSubmitting(false);
+        setErrorMessage(result.error || 'Failed to send message. Please try again.');
+      }
+    } catch (error) {
       setIsSubmitting(false);
-      setIsSubmitted(true);
-      setFormData({ name: '', email: '', subject: 'General Inquiry', message: '' });
-      setTimeout(() => setIsSubmitted(false), 5000);
-    }, 1200);
+      setErrorMessage('Failed to connect to the server.');
+    }
   };
 
   return (
-    <section 
-      id="contact" 
-      ref={sectionRef} 
+    <section
+      id="contact"
+      ref={sectionRef}
       className="py-32 bg-neutral-950 text-white px-6 md:px-12 relative overflow-hidden scroll-mt-12"
     >
       <div className="max-w-7xl mx-auto">
-        
+
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-16">
           <div className="contact-anim inline-flex items-center gap-2 mb-3">
@@ -92,10 +109,10 @@ export default function Contact() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          
+
           {/* Contact Details & Info Cards */}
           <div className="lg:col-span-5 space-y-6">
-            
+
             <div className="contact-anim bg-neutral-900/40 border border-neutral-800/80 p-8 rounded-3xl space-y-6">
               <h3 className="text-2xl font-serif font-bold text-white mb-2">
                 Information & Hours
@@ -128,7 +145,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h4 className="text-white font-medium mb-0.5">Direct Email</h4>
-                    <p className="text-neutral-400 font-mono">contact@savorygourmet.com</p>
+                    <p className="text-neutral-400 font-mono">purnendranishad5@gmail.com</p>
                   </div>
                 </div>
 
@@ -159,7 +176,7 @@ export default function Contact() {
 
           {/* Form Section */}
           <div className="lg:col-span-7">
-            <form 
+            <form
               ref={formRef}
               onSubmit={handleSubmit}
               className="contact-anim bg-neutral-900/50 border border-neutral-800/80 p-8 md:p-10 rounded-3xl shadow-2xl relative"
@@ -176,8 +193,14 @@ export default function Contact() {
                 </div>
               )}
 
+              {errorMessage && (
+                <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl">
+                  {errorMessage}
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                
+
                 {/* Name */}
                 <div className="space-y-2">
                   <label htmlFor="name" className="text-xs uppercase tracking-wider font-semibold text-neutral-300">

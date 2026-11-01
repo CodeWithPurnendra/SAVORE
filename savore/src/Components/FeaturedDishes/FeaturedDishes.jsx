@@ -61,7 +61,7 @@ const DishCard = memo(({ dish, onSelect, onOrder }) => {
           <FiClock className="w-3.5 h-3.5 text-amber-500" /> {dish.prepTime}
         </span>
         <button
-          onClick={(e) => onOrder(dish.name, e)}
+          onClick={(e) => onOrder(dish, e)}
           className="w-10 h-10 rounded-full bg-neutral-800/80 group-hover:bg-amber-500 text-neutral-300 group-hover:text-neutral-950 flex items-center justify-center transition-all duration-300 cursor-pointer active:scale-90"
         >
           <FiPlus className="w-5 h-5" />
@@ -88,7 +88,7 @@ function DishCardLoader() {
   );
 }
 
-export default function FeaturedDishes() {
+export default function FeaturedDishes({ onAddToCart }) {
   const sectionRef = useRef(null);
   const containerRef = useRef(null);
   const [dishes, setDishes] = useState([]);
@@ -117,7 +117,7 @@ export default function FeaturedDishes() {
             id: meal.idMeal,
             name: meal.strMeal,
             category: activeCategory,
-            price: `$${(Math.floor(Math.random() * 15) + 20).toString()}`,
+            price: `$${(Math.floor(Math.random() * 15) + 12).toFixed(2)}`,
             description: `A gourmet ${activeCategory.toLowerCase()} creation crafted with fresh seasonal ingredients.`,
             calories: `${Math.floor(Math.random() * 250) + 350} kcal`,
             prepTime: `${Math.floor(Math.random() * 20) + 15} mins`,
@@ -184,9 +184,10 @@ export default function FeaturedDishes() {
     return () => ctx.revert();
   }, [loading, dishes]);
 
-  const handleOrder = (dishName, e) => {
-    e.stopPropagation();
-    setOrderNotification(dishName);
+  const handleOrder = (dish, e) => {
+    if (e) e.stopPropagation();
+    if (onAddToCart) onAddToCart(dish);
+    setOrderNotification(dish.name);
     setTimeout(() => setOrderNotification(null), 3000);
   };
 
@@ -209,7 +210,7 @@ export default function FeaturedDishes() {
             Curated <span className="italic text-amber-400 font-normal">Creations</span>
           </h2>
           <p className="header-text-anim text-neutral-400 font-light text-sm md:text-base">
-            Select a category to view fresh options from our API feed.
+            Select a category to view fresh options from our menu feed.
           </p>
         </div>
 
@@ -257,33 +258,30 @@ export default function FeaturedDishes() {
         </div>
 
         {/* Redesigned Premium CTA Button */}
-        <div className="mt-16 text-center">
-          <button
-            onClick={() => setIsFullMenuOpen(true)}
-            className="group relative inline-flex items-center gap-4 px-8 py-4 bg-neutral-900/80 backdrop-blur-md border border-neutral-800 hover:border-amber-500/50 rounded-full transition-all duration-300 cursor-pointer shadow-2xl hover:shadow-amber-500/10 hover:-translate-y-0.5 active:translate-y-0"
-          >
-            {/* Ambient Background Glow */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-500/0 via-amber-500/5 to-amber-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        {modalDishes.length > 0 && (
+          <div className="mt-16 text-center">
+            <button
+              onClick={() => setIsFullMenuOpen(true)}
+              className="group relative inline-flex items-center gap-4 px-8 py-4 bg-neutral-900/80 backdrop-blur-md border border-neutral-800 hover:border-amber-500/50 rounded-full transition-all duration-300 cursor-pointer shadow-2xl hover:shadow-amber-500/10 hover:-translate-y-0.5 active:translate-y-0"
+            >
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-500/0 via-amber-500/5 to-amber-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-            {/* Icon Indicator */}
-            <div className="w-7 h-7 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-neutral-950 transition-colors duration-300">
-              <FiGrid className="w-3.5 h-3.5" />
-            </div>
+              <div className="w-7 h-7 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-neutral-950 transition-colors duration-300">
+                <FiGrid className="w-3.5 h-3.5" />
+              </div>
 
-            {/* Main Label */}
-            <span className="text-xs uppercase tracking-[0.2em] font-semibold text-neutral-200 group-hover:text-white transition-colors">
-              Explore More {activeCategory}
-            </span>
+              <span className="text-xs uppercase tracking-[0.2em] font-semibold text-neutral-200 group-hover:text-white transition-colors">
+                Explore More {activeCategory}
+              </span>
 
-            {/* Item Counter Pill */}
-            <span className="px-2.5 py-0.5 rounded-full bg-neutral-800 border border-neutral-700 text-[10px] font-mono text-amber-400 group-hover:border-amber-500/40 transition-colors">
-              +{modalDishes.length}
-            </span>
+              <span className="px-2.5 py-0.5 rounded-full bg-neutral-800 border border-neutral-700 text-[10px] font-mono text-amber-400 group-hover:border-amber-500/40 transition-colors">
+                +{modalDishes.length}
+              </span>
 
-            {/* Arrow Indicator */}
-            <FiArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-amber-400 group-hover:translate-x-1 transition-all duration-300 ml-1" />
-          </button>
-        </div>
+              <FiArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-amber-400 group-hover:translate-x-1 transition-all duration-300 ml-1" />
+            </button>
+          </div>
+        )}
 
       </div>
 
@@ -302,26 +300,20 @@ export default function FeaturedDishes() {
             </div>
             
             <div className="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
-              {modalDishes.length > 0 ? (
-                modalDishes.map((dish) => (
-                  <div key={dish.id} onClick={() => setSelectedDish(dish)} className="bg-neutral-950 p-4 rounded-2xl flex gap-4 cursor-pointer hover:border-amber-500/40 border border-neutral-800 transition-colors group">
-                    <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0">
-                      <SharpImage src={dish.image} alt={dish.name} />
-                    </div>
-                    <div className="flex flex-col justify-between py-1">
-                      <div>
-                        <h4 className="font-serif font-bold text-white text-base line-clamp-1 group-hover:text-amber-400 transition-colors">{dish.name}</h4>
-                        <span className="text-amber-400 font-mono font-bold text-xs">{dish.price}</span>
-                      </div>
-                      <span className="text-[10px] uppercase text-neutral-500 tracking-wider">Click for details &rarr;</span>
-                    </div>
+              {modalDishes.map((dish) => (
+                <div key={dish.id} onClick={() => setSelectedDish(dish)} className="bg-neutral-950 p-4 rounded-2xl flex gap-4 cursor-pointer hover:border-amber-500/40 border border-neutral-800 transition-colors group">
+                  <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0">
+                    <SharpImage src={dish.image} alt={dish.name} />
                   </div>
-                ))
-              ) : (
-                <div className="col-span-2 py-12 text-center text-neutral-500 text-sm">
-                  All available items for this category are currently displayed on the main menu.
+                  <div className="flex flex-col justify-between py-1">
+                    <div>
+                      <h4 className="font-serif font-bold text-white text-base line-clamp-1 group-hover:text-amber-400 transition-colors">{dish.name}</h4>
+                      <span className="text-amber-400 font-mono font-bold text-xs">{dish.price}</span>
+                    </div>
+                    <span className="text-[10px] uppercase text-neutral-500 tracking-wider">Click for details &rarr;</span>
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         </div>
@@ -334,7 +326,7 @@ export default function FeaturedDishes() {
             <button onClick={() => setSelectedDish(null)} className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-neutral-950/80 text-white flex items-center justify-center hover:bg-amber-500 hover:text-neutral-950 transition-colors cursor-pointer">
               <FiX className="w-5 h-5" />
             </button>
-            <div className="w-full h-64">
+            <div className="w-64 h-64 mx-auto">
               <SharpImage src={selectedDish.image} alt={selectedDish.name} />
             </div>
             <div className="p-6">
@@ -342,10 +334,10 @@ export default function FeaturedDishes() {
               <h3 className="text-2xl font-serif font-bold text-white my-2">{selectedDish.name}</h3>
               <p className="text-neutral-400 text-xs leading-relaxed mb-6">{selectedDish.description}</p>
               <button 
-                onClick={(e) => { handleOrder(selectedDish.name, e); setSelectedDish(null); }}
+                onClick={(e) => { handleOrder(selectedDish, e); setSelectedDish(null); }}
                 className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold uppercase text-xs rounded-xl transition-colors cursor-pointer"
               >
-                Order Dish
+                Add to Order ({selectedDish.price})
               </button>
             </div>
           </div>

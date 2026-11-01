@@ -6,7 +6,7 @@ import { FiMenu, FiX, FiShoppingBag, FiCoffee } from 'react-icons/fi';
 // Register the ScrollToPlugin
 gsap.registerPlugin(ScrollToPlugin);
 
-export default function NavBar({ onOpenBooking }) {
+export default function NavBar({ onOpenBooking, onOpenCart, cartCount = 0 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const navRef = useRef(null);
@@ -61,6 +61,13 @@ export default function NavBar({ onOpenBooking }) {
     }
   };
 
+  const handleCartClick = () => {
+    setIsOpen(false);
+    if (onOpenCart) {
+      onOpenCart();
+    }
+  };
+
   // Relevant anchor links matching your restaurant sections
   const navLinks = [
     { name: 'Home', href: '#' },
@@ -108,11 +115,17 @@ export default function NavBar({ onOpenBooking }) {
 
         {/* Desktop Action Buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <button className="relative p-2 text-neutral-300 hover:text-amber-400 transition-colors cursor-pointer">
+          <button 
+            type="button"
+            onClick={handleCartClick}
+            className="relative p-2 text-neutral-300 hover:text-amber-400 transition-colors cursor-pointer"
+          >
             <FiShoppingBag className="w-5 h-5" />
-            <span className="absolute top-0 right-0 w-4 h-4 bg-amber-500 text-neutral-950 text-[10px] font-bold rounded-full flex items-center justify-center">
-              0
-            </span>
+            {cartCount > 0 && (
+              <span className="absolute top-0 right-0 w-4 h-4 bg-amber-500 text-neutral-950 text-[10px] font-bold rounded-full flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
           </button>
           
           {/* Desktop Book Table Button */}
@@ -148,9 +161,13 @@ export default function NavBar({ onOpenBooking }) {
             </a>
           ))}
           <div className="flex items-center justify-between pt-4">
-            <button className="flex items-center gap-2 text-neutral-300 cursor-pointer">
+            <button 
+              type="button"
+              onClick={handleCartClick}
+              className="flex items-center gap-2 text-neutral-300 cursor-pointer"
+            >
               <FiShoppingBag className="w-5 h-5 text-amber-500" />
-              <span>Cart (0)</span>
+              <span>Cart ({cartCount})</span>
             </button>
 
             {/* Mobile Book Table Button */}

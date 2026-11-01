@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import NavBar from './Components/NavBar/NavBar';
 import Hero from './Components/Hero/Hero';
@@ -21,16 +20,23 @@ export default function App() {
   const handleOpenCart = () => setIsCartOpen(true);
   const handleCloseCart = () => setIsCartOpen(false);
 
-  // Add Item to Cart
+  // Add Item to Cart (Handles string or numeric price conversion)
   const handleAddToCart = (dish) => {
+    // Convert string price ("₹450" or "$450") to a clean number
+    const numericPrice = typeof dish.price === 'string'
+      ? parseFloat(dish.price.replace(/[^0-9.]/g, ''))
+      : dish.price;
+
+    const formattedDish = { ...dish, price: numericPrice };
+
     setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === dish.id);
+      const existingItem = prevItems.find((item) => item.id === formattedDish.id);
       if (existingItem) {
         return prevItems.map((item) =>
-          item.id === dish.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === formattedDish.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prevItems, { ...dish, quantity: 1 }];
+      return [...prevItems, { ...formattedDish, quantity: 1 }];
     });
   };
 
