@@ -4,9 +4,10 @@
 
 ### Fine Dining & Full-Stack Culinary Experience
 
-A modern, responsive full-stack web application for a luxury fine-dining restaurant, built with **React**, **GSAP**, **Tailwind CSS**, **Node.js**, **Express**, and **PostgreSQL**.
+A modern, responsive full-stack web application for a luxury fine-dining restaurant, built with **React**, **Tailwind CSS**, **GSAP**, **Node.js**, **Express** and **PostgreSQL**.
 
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-Build-646CFF?logo=vite&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-Express-339933?logo=nodedotjs&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Sequelize-4169E1?logo=postgresql&logoColor=white)
 ![GSAP](https://img.shields.io/badge/GSAP-Animations-88CE02?logo=greensock&logoColor=white)
@@ -24,45 +25,53 @@ A modern, responsive full-stack web application for a luxury fine-dining restaur
 - [About the Project](#-about-the-project)
 - [Key Features](#-key-features)
 - [Tech Stack](#️-tech-stack)
-- [Database Schema](#-database-schema)
+- [Database Schema](#️-database-schema)
 - [Project Structure](#-project-structure)
 - [Getting Started](#-getting-started)
 - [Environment Variables](#-environment-variables)
 - [API Endpoints](#-api-endpoints)
-- [Roadmap](#-roadmap)
+- [Roadmap](#️-roadmap)
+- [Contributing](#-contributing)
 - [License](#-license)
 
 ---
 
 ## 🍷 About the Project
 
-**SAVORÉ** is an end-to-end full-stack web application designed for an upscale restaurant. It blends high-performance UI animations with a robust backend architecture:
+**SAVORÉ** is an end-to-end full-stack web application for an upscale restaurant. It pairs an animated, immersive UI with a REST API and a relational database:
 
-- **Frontend**: Built with React and GSAP for immersive scroll animations and interactive modal drawers. Dynamic menu categories are fetched live via TheMealDB API.
-- **Backend**: An Express.js REST API backed by PostgreSQL using Sequelize ORM for automatic schema migrations and transactional table synchronization.
+- **Frontend:** React and Vite, styled with Tailwind CSS. GSAP powers the scroll animations, and interactive modals and drawers handle reservations, the cart and checkout. Menu categories are fetched live from TheMealDB API.
+- **Backend:** An Express.js REST API backed by PostgreSQL through the Sequelize ORM, with JWT-based authentication and automatic table synchronization.
 
 ---
 
 ## 🌟 Key Features
 
-### 📅 Table Reservation & Persistence (`BookTable.jsx`)
-- Interactive reservation modal with time-slot selection.
-- Complete backend validation and persistence into PostgreSQL (`bookings` table).
-- Backdrop blur overlays and smooth exit triggers via `Esc` key or overlay clicks.
+### 📅 Table Reservations
+- Reservation modal with guest count, date and time-slot selection.
+- Server-side validation (required fields, guest count, no past dates) and storage in PostgreSQL.
+- Animated success screen, and the form resets on close.
+- Close with the `Esc` key, the close button or the "Done" button.
 
-### 🛒 Real-Time Shopping Cart (`Cart.jsx` & `NavBar.jsx`)
-- Slide-over drawer with item quantity controls (increment, decrement, clear).
-- Dynamic subtotal, tax (8%), and grand total calculations formatted in USD ($).
-- Animated navbar counter badge driven by centralized `App.jsx` state.
+### 🛒 Shopping Cart & Checkout
+- Slide-over cart drawer with quantity controls (increment, decrement, clear).
+- Live subtotal, 8% tax and grand total in USD.
+- Checkout modal with delivery address and payment option selection.
+- Orders are saved to PostgreSQL (`Orders` and `OrderItems`) for logged-in users, with a confirmation screen after a successful order.
+- Navbar badge showing the live cart count.
 
-### 🍽️ Dynamic Category Menu (`FeaturedDishes.jsx`)
-- Real-time fetching of menu items via external dish APIs.
+### 🔐 Authentication
+- User accounts with JWT-based authentication.
+- Protected routes: placing an order requires a valid token.
+
+### 🍽️ Dynamic Category Menu
+- Menu items fetched in real time from TheMealDB.
 - Filterable category pills (Seafood, Pasta, Vegetarian, Dessert, Starter).
-- Interactive dish detail view modal and smooth notification toast triggers.
+- Dish detail modal and toast notifications.
 
-### 📬 Contact & Location Management (`Contact.jsx`)
-- Contact form handling general inquiries and custom feedback.
-- Automated storage inside PostgreSQL (`contact_messages` table).
+### 📬 Contact Form
+- General inquiries and feedback form.
+- Messages stored automatically in PostgreSQL.
 
 ---
 
@@ -70,21 +79,28 @@ A modern, responsive full-stack web application for a luxury fine-dining restaur
 
 | Domain | Technology |
 | --- | --- |
-| **Frontend** | React 18, Tailwind CSS, GSAP (ScrollTrigger & ScrollTo), React Icons |
-| **Backend** | Node.js, Express.js, Cors, Dotenv |
+| **Frontend** | React 18, Vite, Tailwind CSS, GSAP (ScrollTrigger & ScrollTo), React Icons |
+| **Backend** | Node.js, Express.js, CORS, Dotenv |
 | **Database** | PostgreSQL, Sequelize ORM |
-| **External API** | TheMealDB (Dynamic menu content feed) |
-| **Build Tool** | Vite |
+| **Auth** | JSON Web Tokens (JWT) |
+| **External API** | TheMealDB (dynamic menu content) |
 
 ---
 
 ## 🗄️ Database Schema
 
-Sequelize manages table structures automatically using database synchronization (`sequelize.sync({ alter: true })`).
+Sequelize creates and updates tables automatically on server start (`sequelize.sync({ alter: true })`).
 
-1. **`bookings`**: Stores user reservations (`name`, `email`, `phone`, `guests`, `date`, `time`, `specialRequests`, `status`).
-2. **`contact_messages`**: Tracks contact inquiries (`name`, `email`, `subject`, `message`).
-3. **`menu_items`**: Custom catalog overrides (`name`, `description`, `price`, `category`, `isAvailable`, `image`).
+| Table | Purpose |
+| --- | --- |
+| **`Users`** | Registered accounts |
+| **`Bookings`** | Table reservations (`name`, `email`, `phone`, `guests`, `date`, `time`, `specialRequests`, `status`) |
+| **`Orders`** | Customer orders (total, delivery address, payment method) |
+| **`OrderItems`** | Individual items belonging to an order |
+| **`Contacts`** | Contact form messages |
+| **`MenuItems`** | Custom menu catalog entries |
+
+**Relationships:** a `User` has many `Bookings` and many `Orders`, and each `Order` has many `OrderItems`.
 
 ---
 
@@ -92,135 +108,128 @@ Sequelize manages table structures automatically using database synchronization 
 
 ```text
 savore/
-├── sever/
-│   ├── models/
-│   │   ├── Booking.js       # Table schema for reservations
-│   │   ├── Contact.js       # Table schema for inquiries
-│   │   └── MenuItem.js      # Table schema for menu catalog
-│   ├── routes/
-│   │   ├── bookingRoutes.js # CRUD endpoints for reservations
-│   │   ├── contactRoutes.js # Endpoints for contact messages
-│   │   └── menuRoutes.js    # Endpoints for dish categories
-│   ├── modules/
-│   │   └── db.js            # Main database instance export
-│   └── server.js            # Express server entry point & sync logic
+├── public/                     # Static assets
+├── src/                        # React frontend
+│   ├── Components/
+│   │   ├── BookTable/          # Reservation modal
+│   │   ├── Cart/               # Slide-over cart drawer
+│   │   ├── CheckoutModal/      # Checkout & order confirmation
+│   │   ├── Contact/            # Contact form section
+│   │   ├── FeaturedDishes/     # Category dish grid & detail modal
+│   │   ├── Hero/               # Hero section
+│   │   ├── MessageAlert/       # Reusable success/error alert
+│   │   ├── NavBar/             # Sticky nav with live cart badge
+│   │   └── Story/              # Restaurant story section
+│   ├── App.jsx                 # App state & handlers
+│   ├── main.jsx                # Vite entry point
+│   └── index.css               # Tailwind CSS imports
 │
-└── frontend/
-    ├── src/
-    │   ├── Components/
-    │   │   ├── BookTable/   # Reservation modal component
-    │   │   ├── Cart/        # Slide-over cart drawer
-    │   │   ├── Contact/     # Contact form section
-    │   │   ├── FeaturedDishes/ # Category dish grid & detail modal
-    │   │   ├── Hero/        # Entrance hero section
-    │   │   ├── NavBar/      # Sticky nav with live cart badge
-    │   │   └── Story/       # Restaurant philosophy section
-    │   ├── App.jsx          # State orchestrator & handler setup
-    │   ├── main.jsx         # Vite entry point
-    │   └── index.css        # Tailwind CSS imports
-    └── vite.config.js
+├── server/                     # Express backend
+│   ├── modules/                # Sequelize models & DB connection
+│   │   ├── db.js
+│   │   ├── User.js
+│   │   ├── Booking.js
+│   │   └── Order.js
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── bookingRoutes.js
+│   │   ├── menuRoutes.js
+│   │   ├── contactRoutes.js
+│   │   └── orderRoutes.js
+│   └── server.js               # Entry point, middleware & DB sync
+│
+├── index.html
+├── vite.config.js
+├── eslint.config.js
+└── package.json
 ```
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-Make sure you have the following installed:
+- [Node.js](https://nodejs.org/) v18 or higher
+- [PostgreSQL](https://www.postgresql.org/) running locally or hosted (for example on [Neon](https://neon.tech/))
 
-- Node.js (v18 or higher)
-- PostgreSQL database running locally or hosted (e.g., [Neon.tech](https://neon.tech/))
+### 1. Clone the repository
 
-### 1. Backend Setup
+```bash
+git clone https://github.com/<your-username>/savore.git
+cd savore
+```
 
-Open your terminal and navigate to the backend directory:
+### 2. Create the database
+
+```sql
+CREATE DATABASE savore_restaurant;
+```
+
+### 3. Backend setup
 
 ```bash
 cd server
-```
-
-Install the dependencies:
-
-```bash
 npm install
 ```
 
-Configure your environment variables:
-
-```bash
-cp .env.example .env
-```
-
-Start the backend server:
+Create a `.env` file in the `server` folder (see [Environment Variables](#-environment-variables)), then start the server:
 
 ```bash
 node server.js
 ```
 
-The backend server will run at:
+The API runs at **http://localhost:5000**. On first start, Sequelize creates all tables automatically.
 
-```text
-http://localhost:5000
-```
+### 4. Frontend setup
 
-### 2. Frontend Setup
-
-Open a new terminal and navigate to the frontend directory:
-
-```bash
-cd frontend
-```
-
-Install the dependencies:
+Open a new terminal in the project root:
 
 ```bash
 npm install
-```
-
-Start the frontend development server:
-
-```bash
 npm run dev
 ```
 
-Visit the application in your browser:
-
-**http://localhost:5173**
+Open **http://localhost:5173** in your browser.
 
 ---
 
 ## 🔑 Environment Variables
 
-Create a `.env` file inside your backend directory:
+Create a `.env` file inside the `server` directory:
 
 ```env
 PORT=5000
 
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=savore_db
+DB_NAME=savore_restaurant
 DB_USER=postgres
 DB_PASSWORD=your_password
+
+JWT_SECRET=your_long_random_secret
 
 CLIENT_URL=http://localhost:5173
 ```
 
-**Important:** Replace `your_password` with your actual PostgreSQL password. Never commit your `.env` file to GitHub.
+> **Important:** replace the placeholder values with your own. Never commit your `.env` file to GitHub.
 
 ---
 
 ## 🔗 API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/health` | Check backend server status |
-| GET | `/api/menu` | Fetch menu items |
-| POST | `/api/bookings` | Create a table reservation |
-| POST | `/api/contact` | Send a contact inquiry |
+**Base URL (local):** `http://localhost:5000`
 
-**Base URL (Local Development):**
+| Method | Endpoint | Auth | Description |
+| --- | --- | --- | --- |
+| GET | `/api/health` | No | Check server status |
+| POST | `/api/auth/*` | No | Register and log in users |
+| GET | `/api/menu` | No | Fetch menu items |
+| POST | `/api/bookings` | No | Create a table reservation |
+| POST | `/api/contact` | No | Send a contact inquiry |
+| POST | `/api/orders` | Bearer token | Place an order |
 
-```text
-http://localhost:5000
-```
+Protected routes expect the header `Authorization: Bearer <token>`.
 
 ---
 
@@ -228,17 +237,33 @@ http://localhost:5000
 
 ### Completed
 
-- [x] Full-stack PERN architecture integration
-- [x] Sequelize automatic table synchronization
-- [x] Animated cart drawer with tax and subtotal calculations
-- [x] GSAP scroll-triggered entrance animations
-- [x] External meal API integration with USD pricing
+- [x] Full-stack PERN architecture
+- [x] Automatic Sequelize table synchronization
+- [x] Animated cart drawer with tax and subtotal calculation
+- [x] Table reservations with server-side validation
+- [x] User authentication (JWT)
+- [x] Checkout flow with order storage
+- [x] GSAP scroll-triggered animations
+- [x] External meal API integration
 
-### Upcoming Features
+### Upcoming
 
-- [ ] Admin dashboard to manage reservations and update booking statuses
-- [ ] User authentication (JWT / OAuth 2.0)
-- [ ] Stripe payment gateway integration for online orders
+- [ ] Admin dashboard to manage reservations and orders
+- [ ] Online payments (Razorpay / Stripe)
+- [ ] Email confirmations for bookings and orders
+- [ ] Order history page for users
+
+---
+
+## 🤝 Contributing
+
+Contributions, issues and feature requests are welcome.
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m "feat: add amazing feature"`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
@@ -252,4 +277,4 @@ Distributed under the MIT License. See the `LICENSE` file for more information.
 
 Created with ❤️ by **Purnendra**.
 
-If you like this project, don't forget to give it a ⭐ on GitHub!
+If you like this project, consider giving it a ⭐ on GitHub!
