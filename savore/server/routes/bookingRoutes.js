@@ -1,45 +1,49 @@
-import express from 'express';
-import Booking from '../modules/Booking.js';
+import { DataTypes } from 'sequelize';
+import sequelize from '../modules/db.js';
 
-const router = express.Router();
-
-// POST: Create a table reservation
-router.post('/', async (req, res) => {
-  try {
-    const savedBooking = await Booking.create(req.body);
-    res.status(201).json({ success: true, message: 'Table booked successfully!', data: savedBooking });
-  } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
-  }
+const bookingRoutes = sequelize.define('Booking', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  guests: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  date: {
+    type: DataTypes.DATEONLY,
+    allowNull: false,
+  },
+  time: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  specialRequests: {
+    type: DataTypes.TEXT,
+  },
+  status: {
+    type: DataTypes.STRING,
+    defaultValue: 'Pending',
+  },
+}, {
+  timestamps: true,
 });
 
-// GET: Fetch all bookings (for admin dashboard)
-router.get('/', async (req, res) => {
-  try {
-    const bookings = await Booking.findAll({ order: [['createdAt', 'DESC']] });
-    res.status(200).json({ success: true, data: bookings });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// PATCH: Update booking status (e.g., Confirmed, Cancelled)
-router.patch('/:id', async (req, res) => {
-  try {
-    const { status } = req.body;
-    const booking = await Booking.findByPk(req.params.id);
-    
-    if (!booking) {
-      return res.status(404).json({ success: false, message: 'Booking not found' });
-    }
-
-    booking.status = status;
-    await booking.save();
-    
-    res.status(200).json({ success: true, message: 'Booking status updated', data: booking });
-  } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
-  }
-});
-
-export default router;
+export default bookingRoutes;

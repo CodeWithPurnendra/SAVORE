@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
-import { FiMenu, FiX, FiShoppingBag, FiCoffee } from 'react-icons/fi';
+import { FiMenu, FiX, FiShoppingBag, FiCoffee, FiUser } from 'react-icons/fi';
 
 // Register the ScrollToPlugin
 gsap.registerPlugin(ScrollToPlugin);
 
-export default function NavBar({ onOpenBooking, onOpenCart, cartCount = 0 }) {
+export default function NavBar({ onOpenBooking, onOpenCart, onOpenAuth, cartCount = 0, user = null }) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const navRef = useRef(null);
@@ -53,7 +53,7 @@ export default function NavBar({ onOpenBooking, onOpenCart, cartCount = 0 }) {
     }
   };
 
-  // Helper handler for triggering modal and closing mobile drawer
+  // Helper handlers for triggering modals and closing mobile drawer
   const handleBookingClick = () => {
     setIsOpen(false);
     if (onOpenBooking) {
@@ -65,6 +65,13 @@ export default function NavBar({ onOpenBooking, onOpenCart, cartCount = 0 }) {
     setIsOpen(false);
     if (onOpenCart) {
       onOpenCart();
+    }
+  };
+
+  const handleAuthClick = () => {
+    setIsOpen(false);
+    if (onOpenAuth) {
+      onOpenAuth();
     }
   };
 
@@ -115,10 +122,13 @@ export default function NavBar({ onOpenBooking, onOpenCart, cartCount = 0 }) {
 
         {/* Desktop Action Buttons */}
         <div className="hidden md:flex items-center gap-4">
+          
+          {/* Cart Button */}
           <button 
             type="button"
             onClick={handleCartClick}
             className="relative p-2 text-neutral-300 hover:text-amber-400 transition-colors cursor-pointer"
+            title="View Cart"
           >
             <FiShoppingBag className="w-5 h-5" />
             {cartCount > 0 && (
@@ -126,6 +136,17 @@ export default function NavBar({ onOpenBooking, onOpenCart, cartCount = 0 }) {
                 {cartCount}
               </span>
             )}
+          </button>
+
+          {/* Account / Login Button */}
+          <button
+            type="button"
+            onClick={handleAuthClick}
+            className="flex items-center gap-2 px-3 py-2 text-neutral-300 hover:text-amber-400 transition-colors border border-neutral-800 hover:border-amber-500/50 rounded-full text-sm cursor-pointer"
+            title={user ? user.name : "Account Login"}
+          >
+            <FiUser className="w-4 h-4 text-amber-500" />
+            <span className="max-w-[100px] truncate">{user ? user.name : 'Sign In'}</span>
           </button>
           
           {/* Desktop Book Table Button */}
@@ -170,15 +191,24 @@ export default function NavBar({ onOpenBooking, onOpenCart, cartCount = 0 }) {
               <span>Cart ({cartCount})</span>
             </button>
 
-            {/* Mobile Book Table Button */}
-            <button
+            <button 
               type="button"
-              onClick={handleBookingClick}
-              className="px-5 py-2.5 bg-amber-500 text-neutral-950 font-semibold text-sm tracking-wider uppercase rounded-full cursor-pointer active:scale-95"
+              onClick={handleAuthClick}
+              className="flex items-center gap-2 text-neutral-300 cursor-pointer"
             >
-              Book Table
+              <FiUser className="w-5 h-5 text-amber-500" />
+              <span>{user ? user.name : 'Sign In'}</span>
             </button>
           </div>
+
+          {/* Mobile Book Table Button */}
+          <button
+            type="button"
+            onClick={handleBookingClick}
+            className="w-full mt-2 py-3 bg-amber-500 text-neutral-950 font-semibold text-sm tracking-wider uppercase rounded-full cursor-pointer active:scale-95 text-center"
+          >
+            Book Table
+          </button>
         </div>
       )}
     </nav>

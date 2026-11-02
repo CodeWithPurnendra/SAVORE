@@ -3,17 +3,33 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 
 import sequelize from './modules/db.js';
+
+// Import Models explicitly from the './modules/' folder with .js extension
+import User from './modules/User.js';
+import Booking from './modules/Booking.js';
+import { Order, OrderItem } from './modules/Order.js';
+
+// Import Routes
+import authRoutes from './routes/authRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import menuRoutes from './routes/menuRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
 
 dotenv.config();
 
 const app = express();
 
+// Define Database Associations cleanly before sync
+User.hasMany(Booking, { foreignKey: 'userId', onDelete: 'CASCADE' });
+Booking.belongsTo(User, { foreignKey: 'userId' });
+
+User.hasMany(Order, { foreignKey: 'userId', onDelete: 'CASCADE' });
+Order.belongsTo(User, { foreignKey: 'userId' });
+
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173', // Vite default port
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
@@ -27,9 +43,11 @@ app.get('/api/health', (req, res) => {
 });
 
 // API Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
@@ -45,7 +63,6 @@ const PORT = process.env.PORT || 5000;
 // Database Connection & Server Startup
 const startServer = async () => {
   try {
-    // Authenticate database connection first
     await sequelize.authenticate();
     console.log('PostgreSQL connection established successfully.');
 
@@ -53,7 +70,6 @@ const startServer = async () => {
     await sequelize.sync({ alter: true });
     console.log('PostgreSQL models synced successfully.');
 
-    // Start Express server
     app.listen(PORT, () => {
       console.log(`🚀 SAVORÉ Backend Server running on http://localhost:${PORT}`);
     });
