@@ -156,7 +156,7 @@ savore/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/savore.git
+git clone https://github.com/CodeWithPurnendra/SAVORE.git
 cd savore
 ```
 
