@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FiX, FiMapPin, FiCreditCard, FiCheckCircle } from 'react-icons/fi';
+import MessageAlert from '../MessageAlert/MessageAlert';
 
 export default function CheckoutModal({ cartItems, subtotal, onClose, onOrderSuccess }) {
   const tax = subtotal * 0.08;
@@ -8,12 +9,14 @@ export default function CheckoutModal({ cartItems, subtotal, onClose, onOrderSuc
   const [address, setAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Cash on Delivery');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     const token = localStorage.getItem('token');
     if (!token) {
@@ -44,8 +47,10 @@ export default function CheckoutModal({ cartItems, subtotal, onClose, onOrderSuc
         throw new Error(data.error || 'Failed to place order');
       }
 
+      setSuccess('🎉 Order placed successfully!');
       setOrderComplete(true);
-      if (onOrderSuccess) onOrderSuccess();
+      // onOrderSuccess is NOT called here anymore, so the modal
+      // stays mounted and the success screen can be seen.
     } catch (err) {
       setError(err.message);
     } finally {
@@ -53,13 +58,20 @@ export default function CheckoutModal({ cartItems, subtotal, onClose, onOrderSuc
     }
   };
 
+  // Runs when the user closes the modal (X button or "Back to Home").
+  // If the order went through, tell the parent now (e.g. to clear the cart).
+  const handleClose = () => {
+    if (orderComplete && onOrderSuccess) onOrderSuccess();
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
       <div className="relative w-full max-w-lg bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-2xl text-white">
-        
-        <button 
-          onClick={onClose} 
-          className="absolute top-4 right-4 text-neutral-400 hover:text-white"
+
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 text-neutral-400 hover:text-white transition-colors"
         >
           <FiX className="w-6 h-6" />
         </button>
@@ -68,12 +80,15 @@ export default function CheckoutModal({ cartItems, subtotal, onClose, onOrderSuc
           <div className="text-center py-8 space-y-4">
             <FiCheckCircle className="w-16 h-16 text-emerald-500 mx-auto" />
             <h2 className="text-2xl font-serif font-bold text-white">Order Confirmed!</h2>
+
+            <MessageAlert message={success} type="success" />
+
             <p className="text-neutral-400 text-sm">
               Your delicious meal is being prepared and will be delivered shortly.
             </p>
             <button
-              onClick={onClose}
-              className="mt-4 px-6 py-2.5 bg-amber-500 text-neutral-950 font-bold rounded-lg hover:bg-amber-400 transition-colors"
+              onClick={handleClose}
+              className="mt-4 px-6 py-2.5 bg-amber-500 text-neutral-950 font-bold rounded-lg hover:bg-amber-400 transition-colors cursor-pointer"
             >
               Back to Home
             </button>
@@ -83,11 +98,7 @@ export default function CheckoutModal({ cartItems, subtotal, onClose, onOrderSuc
             <h2 className="text-2xl font-serif font-bold text-amber-500 mb-1">Checkout</h2>
             <p className="text-xs text-neutral-400 mb-6">Review your order details and delivery address.</p>
 
-            {error && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg">
-                {error}
-              </div>
-            )}
+            <MessageAlert message={error} type="error" />
 
             {/* Order Summary */}
             <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-4 mb-4 space-y-2 max-h-36 overflow-y-auto">

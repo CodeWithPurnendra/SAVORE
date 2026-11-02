@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiCalendar, FiClock, FiUsers, FiUser, FiMail, FiPhone, FiCheckCircle } from 'react-icons/fi';
+import MessageAlert from '../MessageAlert/MessageAlert';
+
+const initialFormData = {
+    name: '',
+    email: '',
+    phone: '',
+    guests: '2',
+    date: '',
+    time: '7:00 PM',
+    specialRequests: '',
+};
 
 export default function BookTable({ isOpen, onClose }) {
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        guests: '2',
-        date: '',
-        time: '7:00 PM',
-        specialRequests: '',
-    });
+    const [formData, setFormData] = useState(initialFormData);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
 
     // 12-hour formatted time options
@@ -31,10 +35,20 @@ export default function BookTable({ isOpen, onClose }) {
         '10:00 PM',
     ];
 
+    // Reset everything, then close. Used by the X button, Escape key and "Done" button.
+    const handleClose = () => {
+        setFormData(initialFormData);
+        setIsSuccess(false);
+        setSuccessMessage('');
+        setErrorMessage('');
+        setIsSubmitting(false);
+        onClose();
+    };
+
     // Close modal on Escape key press
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.key === 'Escape') onClose();
+            if (e.key === 'Escape') handleClose();
         };
         if (isOpen) window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
@@ -50,6 +64,7 @@ export default function BookTable({ isOpen, onClose }) {
         e.preventDefault();
         setIsSubmitting(true);
         setErrorMessage('');
+        setSuccessMessage('');
 
         try {
             const response = await fetch('http://localhost:5000/api/bookings', {
@@ -66,10 +81,8 @@ export default function BookTable({ isOpen, onClose }) {
             if (response.ok && result.success) {
                 setIsSubmitting(false);
                 setIsSuccess(true);
-                setTimeout(() => {
-                    setIsSuccess(false);
-                    onClose();
-                }, 2500);
+                setSuccessMessage('🎉 Table successfully reserved! We look forward to hosting you.');
+                // No auto-close: the success screen stays until the user clicks "Done".
             } else {
                 setIsSubmitting(false);
                 setErrorMessage(result.error || 'Something went wrong. Please try again.');
@@ -90,7 +103,7 @@ export default function BookTable({ isOpen, onClose }) {
             >
                 {/* Close Button */}
                 <button
-                    onClick={onClose}
+                    onClick={handleClose}
                     className="absolute top-5 right-5 w-9 h-9 rounded-full bg-neutral-950/80 border border-neutral-800 text-neutral-400 hover:text-white hover:bg-amber-500 hover:border-amber-500 flex items-center justify-center transition-colors cursor-pointer z-10"
                 >
                     <FiX className="w-5 h-5" />
@@ -98,14 +111,24 @@ export default function BookTable({ isOpen, onClose }) {
 
                 {/* Success Overlay */}
                 {isSuccess ? (
-                    <div className="py-12 flex flex-col items-center justify-center text-center">
-                        <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mb-4">
+                    <div className="py-12 flex flex-col items-center justify-center text-center space-y-4">
+                        <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mb-2">
                             <FiCheckCircle className="w-8 h-8" />
                         </div>
-                        <h3 className="text-2xl font-serif font-bold text-white mb-2">Table Reserved</h3>
+                        <h3 className="text-2xl font-serif font-bold text-white mb-1">Table Reserved</h3>
+
+                        <MessageAlert message={successMessage} type="success" />
+
                         <p className="text-neutral-400 text-xs max-w-xs">
-                            Confirmation sent to <span className="text-amber-400">{formData.email}</span>. We look forward to hosting you!
+                            Confirmation sent to <span className="text-amber-400">{formData.email}</span>.
                         </p>
+
+                        <button
+                            onClick={handleClose}
+                            className="mt-4 px-6 py-2.5 bg-amber-500 text-neutral-950 font-bold uppercase text-xs tracking-widest rounded-xl hover:bg-amber-400 transition-colors cursor-pointer"
+                        >
+                            Done
+                        </button>
                     </div>
                 ) : (
                     <>
@@ -120,11 +143,7 @@ export default function BookTable({ isOpen, onClose }) {
                         </div>
 
                         {/* Error Message Display */}
-                        {errorMessage && (
-                            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl">
-                                {errorMessage}
-                            </div>
-                        )}
+                        <MessageAlert message={errorMessage} type="error" />
 
                         {/* Form */}
                         <form onSubmit={handleSubmit} className="space-y-4">

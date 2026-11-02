@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
-import { FiMenu, FiX, FiShoppingBag, FiCoffee, FiUser } from 'react-icons/fi';
+import { FiMenu, FiX, FiShoppingBag, FiCoffee, FiUser, FiLogOut } from 'react-icons/fi';
 
 // Register the ScrollToPlugin
 gsap.registerPlugin(ScrollToPlugin);
 
-export default function NavBar({ onOpenBooking, onOpenCart, onOpenAuth, cartCount = 0, user = null }) {
+export default function NavBar({ onOpenBooking, onOpenCart, onOpenAuth, onLogout, cartCount = 0, user = null }) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const navRef = useRef(null);
@@ -75,6 +75,17 @@ export default function NavBar({ onOpenBooking, onOpenCart, onOpenAuth, cartCoun
     }
   };
 
+  const handleLogoutClick = () => {
+    setIsOpen(false);
+    if (onLogout) {
+      onLogout();
+    } else {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.reload();
+    }
+  };
+
   // Relevant anchor links matching your restaurant sections
   const navLinks = [
     { name: 'Home', href: '#' },
@@ -138,16 +149,35 @@ export default function NavBar({ onOpenBooking, onOpenCart, onOpenAuth, cartCoun
             )}
           </button>
 
-          {/* Account / Login Button */}
-          <button
-            type="button"
-            onClick={handleAuthClick}
-            className="flex items-center gap-2 px-3 py-2 text-neutral-300 hover:text-amber-400 transition-colors border border-neutral-800 hover:border-amber-500/50 rounded-full text-sm cursor-pointer"
-            title={user ? user.name : "Account Login"}
-          >
-            <FiUser className="w-4 h-4 text-amber-500" />
-            <span className="max-w-[100px] truncate">{user ? user.name : 'Sign In'}</span>
-          </button>
+          {/* Account / User Avatar with Logout */}
+          {user ? (
+            <div className="flex items-center gap-1.5 bg-neutral-900 border border-neutral-800 rounded-full p-1 pr-2">
+              <div 
+                className="w-7 h-7 rounded-full bg-amber-500 text-neutral-950 font-bold text-xs flex items-center justify-center uppercase shadow-inner"
+                title={user.name}
+              >
+                {user.name ? user.name.charAt(0) : <FiUser className="w-3.5 h-3.5" />}
+              </div>
+              <button
+                type="button"
+                onClick={handleLogoutClick}
+                className="p-1.5 text-neutral-400 hover:text-red-400 transition-colors cursor-pointer"
+                title="Logout"
+              >
+                <FiLogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleAuthClick}
+              className="flex items-center gap-2 px-4 py-2 text-neutral-300 hover:text-amber-400 transition-colors border border-neutral-800 hover:border-amber-500/50 rounded-full text-sm cursor-pointer"
+              title="Account Login"
+            >
+              <FiUser className="w-4 h-4 text-amber-500" />
+              <span>Sign In</span>
+            </button>
+          )}
           
           {/* Desktop Book Table Button */}
           <button
@@ -191,14 +221,25 @@ export default function NavBar({ onOpenBooking, onOpenCart, onOpenAuth, cartCoun
               <span>Cart ({cartCount})</span>
             </button>
 
-            <button 
-              type="button"
-              onClick={handleAuthClick}
-              className="flex items-center gap-2 text-neutral-300 cursor-pointer"
-            >
-              <FiUser className="w-5 h-5 text-amber-500" />
-              <span>{user ? user.name : 'Sign In'}</span>
-            </button>
+            {user ? (
+              <button 
+                type="button"
+                onClick={handleLogoutClick}
+                className="flex items-center gap-2 text-red-400 cursor-pointer font-medium"
+              >
+                <FiLogOut className="w-5 h-5" />
+                <span>Logout</span>
+              </button>
+            ) : (
+              <button 
+                type="button"
+                onClick={handleAuthClick}
+                className="flex items-center gap-2 text-neutral-300 cursor-pointer"
+              >
+                <FiUser className="w-5 h-5 text-amber-500" />
+                <span>Sign In</span>
+              </button>
+            )}
           </div>
 
           {/* Mobile Book Table Button */}
