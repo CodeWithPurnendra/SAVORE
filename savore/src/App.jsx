@@ -6,19 +6,21 @@ import Story from './Components/Story/Story';
 import Contact from './Components/Contact/Contact';
 import BookTable from './Components/BookTable/BookTable';
 import AuthModal from './Components/AuthModal/AuthModal';
-import  CartDrawer from './Components/CartDrawer/CartDrawer';
+import CartDrawer from './Components/CartDrawer/CartDrawer';
 import CheckoutModel from './Components/CheckoutModal/CheckoutModal';
+import Loader from './Components/Loader/Loader';
 
 export default function App() {
+  const [isLoading, setIsLoading] = useState(true);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  
+
   const [cartItems, setCartItems] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Load user and token session on page startup
+  // Load user session and handle initial page loader
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
@@ -28,6 +30,13 @@ export default function App() {
         console.error('Failed to parse saved user session:', err);
       }
     }
+
+    // Brief delay so the brand preloader renders smoothly before showing the app
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1200);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // Booking Modal Handlers
@@ -83,9 +92,13 @@ export default function App() {
   // Total Item Count for Navbar Badge
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
+  if (isLoading) {
+    return <Loader />;
+  }
+
   return (
     <div className="bg-neutral-950 text-neutral-100 min-h-screen font-sans selection:bg-amber-500 selection:text-neutral-950">
-      
+
       {/* Navigation Bar */}
       <NavBar
         onOpenBooking={handleOpenBooking}
